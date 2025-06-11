@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DreamsForm: View {
-    @StateObject private var dreamsData = DreamsData()
+    @EnvironmentObject var dreamsData: DreamsData
     @State private var newDreamName: String = ""
     @State private var newDreamCost: String = ""
     
@@ -16,7 +16,7 @@ struct DreamsForm: View {
     @StateObject private var statusBarManager = StatusBarManager()
     
     var percentageAchieved: Double {
-        guard dreamsData.totalDreamCost > 0 else { return 0 }
+        guard dreamsData.totalDreamCost > 0 else { return 1 }
         return salaryData.totalSalaryEarned / dreamsData.totalDreamCost
     }
     
