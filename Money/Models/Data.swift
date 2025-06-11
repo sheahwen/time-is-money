@@ -16,6 +16,17 @@ class SalaryData: ObservableObject {
     @AppStorage("startMinute") var startMinute: Int = 30
     @AppStorage("endHour") var endHour: Int = 18
     @AppStorage("endMinute") var endMinute: Int = 30
+    @AppStorage("workDaysString") private var workDaysString: String = "1,2,3,4,5" // Store as comma-separated string
+    
+    // Computed property to handle conversion between string and array
+    var workDays: [Int] {
+        get {
+            workDaysString.split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+        }
+        set {
+            workDaysString = newValue.map(String.init).joined(separator: ",")
+        }
+    }
     
     @Published var totalSalaryEarned: Double = 0.0
     
@@ -41,12 +52,24 @@ class SalaryData: ObservableObject {
             return
         }
         
-        let calendar = Calendar.current
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2  // Set Monday as first day of week (2 = Monday)
         let now = Date()
         let totalDaysInMonth = calendar.range(of: .day, in: .month, for: now)?.count ?? 0
         
         if totalDaysInMonth > 0 {
-            let dailySalary = salary / Double(totalDaysInMonth)
+            // Calculate working days in the month
+            var workingDaysInMonth = 0
+            for day in 1...totalDaysInMonth {
+                if let date = calendar.date(bySetting: .day, value: day, of: now) {
+                    let weekday = calendar.component(.weekday, from: date)
+                    if workDays.contains(weekday) {
+                        workingDaysInMonth += 1
+                    }
+                }
+            }
+            
+            let dailySalary = salary / Double(workingDaysInMonth)
             let currentDay = calendar.component(.day, from: now)
             
             // Setting up today's times
@@ -78,13 +101,26 @@ class SalaryData: ObservableObject {
             let endOfCurrentWorkPeriod = isBeforeEndTime ? now : endTimeToday
             let secondsWorkedToday = max(0, endOfCurrentWorkPeriod.timeIntervalSince(startTimeToday))
             // Adjust daily calculation if the current time is after the end time
-            let totalWorkableSeconds = endTimeToday.timeIntervalSince(startTimeToday)
-  
-            let salaryEarnedToday = (secondsWorkedToday / totalWorkableSeconds) * dailySalary
-           
-            // Adjust salary before today
-            let daysBeforeToday = currentDay - 1
-            let salaryEarnedBeforeToday = Double(daysBeforeToday) * dailySalary
+            let totalWorkableSeconds =
+            endTimeToday.timeIntervalSince(startTimeToday)
+            
+            // Check if today is a working day
+            let weekday = calendar.component(.weekday, from: now) == 1 ? 7 : calendar.component(.weekday, from: now) - 1
+            let isWorkingDay = workDays.contains(weekday)
+            
+            let salaryEarnedToday = isWorkingDay ? (secondsWorkedToday / totalWorkableSeconds) * dailySalary : 0
+            
+            // Calculate salary earned before today
+            var salaryEarnedBeforeToday = 0.0
+            for day in 1..<currentDay {
+                if let date = calendar.date(bySetting: .day, value: day, of: now) {
+                    let weekday = calendar.component(.weekday, from: date)
+                    if workDays.contains(weekday) {
+                        salaryEarnedBeforeToday += dailySalary
+                    }
+                }
+            }
+            
             // Update total salary earned
             totalSalaryEarned = salaryEarnedBeforeToday + salaryEarnedToday
         }
