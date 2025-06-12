@@ -2,6 +2,11 @@
 
 A macOS app that helps you visualize your monthly salary earnings in real-time and track your progress towards your financial goals.
 
+### Demo
+https://github.com/user-attachments/assets/a327448b-ace0-4860-86ba-c82e6a318198
+
+https://github.com/user-attachments/assets/fee9c806-6ee2-4686-b7b9-06cb32289433
+
 ## Features
 
 - **Real-time Salary Tracking**: See how much you've earned as you work, updated every second
