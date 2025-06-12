@@ -24,7 +24,6 @@ struct ContentView: View {
     }
     
     var body: some View {
-        
         ScrollView {
             VStack(alignment: .leading) {
                 Form()
@@ -62,6 +61,7 @@ struct ContentView: View {
                 }
             }
         }
+        .frame(minHeight: 450)
         .environmentObject(salaryData)
         .environmentObject(dreamsData)
     }
